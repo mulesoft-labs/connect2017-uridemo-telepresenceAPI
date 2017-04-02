@@ -1,0 +1,50 @@
+#%RAML 1.0
+baseUri: https://mocksvc.mulesoft.com/mocks/80889755-2987-4829-b9e0-ac5143521fa2
+title: Robot Telepresence
+version: v1
+mediaType: application/json
+uses: 
+  r: robot-resources.raml
+  t: robot-types.raml
+
+/motionTargets:
+  /head:
+    type: 
+      r.motionTarget: { target-type: t.head-motion-target }
+  /left-arm:
+    type: 
+      r.motionTarget: { target-type: t.left-arm-motion-target }
+  /right-arm:
+    type: 
+      r.motionTarget: { target-type: t.right-arm-motion-target }
+/behaviors:
+  /walks:
+    type: 
+      r.behavior: { behavior-type: t.walk }
+    /current:
+      type: 
+        r.current-behavior: { behavior-type: t.walk }
+  /talks:
+    type: 
+      r.behavior: { behavior-type: t.talk }
+    /current:
+      type: 
+        r.current-behavior: { behavior-type: t.talk }
+  /kicks:
+    type: 
+      r.behavior: { behavior-type: t.kick }
+    /current:
+      type: 
+        r.current-behavior: { behavior-type: t.kick }
+  /postures:
+    type: 
+      r.behavior: { behavior-type: t.posture }
+    /current:
+      type: 
+        r.current-behavior: { behavior-type: t.posture }
+  /awakes:
+    type: 
+      r.behavior: { behavior-type: t.awake }
+    /current:
+      type: 
+        r.current-behavior: { behavior-type: t.awake }

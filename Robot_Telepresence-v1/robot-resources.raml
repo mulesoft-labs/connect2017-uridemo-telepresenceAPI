@@ -1,0 +1,22 @@
+#%RAML 1.0 Library
+resourceTypes:
+  motionTarget:
+    get:
+      responses:
+        200:
+          body:
+            type: <<target-type>>
+    put:
+      body:
+        type: <<target-type>>
+  behavior:
+    post:
+      body:
+        type: <<behavior-type>>
+  current-behavior:
+      get:
+        responses:
+          200:
+            body: 
+              type: <<behavior-type>>
+      delete:

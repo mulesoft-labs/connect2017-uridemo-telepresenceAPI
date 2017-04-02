@@ -1,0 +1,130 @@
+#%RAML 1.0 Library
+types:
+  motion-speed:
+    type: number
+    minimum: 0
+    maximum: 1
+    default: 0.99
+    example: 0.5
+  head-motion-target:
+    properties:
+      left-right:
+        description: In degrees, with positive being left
+        type: number
+        maximum: 119.5
+        minimum: -119.5
+        example: 20
+      up-down:
+        description: In degrees, with positive being down
+        type: number
+        maximum: 29.5
+        minimum: -38.5
+        example: -15
+      speed:
+        type: motion-speed
+        required: false
+    example:
+      left-right: 20
+      up-down: -15
+      speed: 0.5
+  left-arm-motion-target:
+    properties:
+      left-right:
+        description: In degrees, with positive being left
+        type: number
+        maximum: 76
+        minimum: -18
+        example: 0
+      up-down:
+        description: In degrees, with 0 being straight ahead and positive being down
+        type: number
+        maximum: 119.5
+        minimum: -119.5
+        example: -15
+      speed:
+        type: motion-speed
+        required: false
+    example:
+      left-right: 0
+      up-down: 90
+      speed: 0.5
+  right-arm-motion-target:
+    properties:
+      left-right:
+        type: number
+        maximum: 18
+        minimum: -76
+        example: 0
+      up-down:
+        description: In degrees, with 0 being straight ahead and positive being down
+        type: number
+        maximum: 119.5
+        minimum: -119.5
+        example: -15
+      speed:
+        type: motion-speed
+        required: false
+    example:
+      left-right: 0
+      up-down: 90
+      speed: 0.5
+  walk:
+    properties:
+      distance-x:
+        description: distance forward, in meters
+        type: number
+        example: 0.2
+      distance-y:
+        description: distance to the right, in meters
+        type: number
+        required: false
+        default: 0
+        example: 0
+      angle:
+        description: angle relative to forward, in degrees, with positive being towards the right
+        type: number
+        required: false
+        default: 0
+        maximum: 180
+        minimum: -180
+        example: 0
+    example:
+      distance-x: 0.2
+      distance-y: 0
+      angle: 0
+  talk:
+    properties:
+      message:
+        example: Hello, I am a NAO robot!
+      animated:
+        description: whether to speak animatedly
+        type: boolean
+        required: false
+        default: false
+    example: 
+      message: Hello, I am a NAO robot!
+  kick:
+    properties:
+      leg:
+        enum: [ left, right, none ]
+        example: left
+    example:
+      leg: left
+  posture:
+    properties:
+      posture:
+        enum: [ Stand, StandInit, StandZero, Crouch, Sit, SitRelax, LyingBelly, LyingBack ]
+        example: Stand
+      speed: 
+        type: motion-speed
+        required: false
+    example:
+      posture: Stand
+      speed: 1.0
+  awake:
+    properties:
+      awake:
+        type: boolean
+        example: true
+    example:
+      awake: true
