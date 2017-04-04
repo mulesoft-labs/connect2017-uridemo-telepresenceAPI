@@ -32,9 +32,17 @@ class httpHandler(BaseHTTPRequestHandler):
     def do_DELETE(self):
         self.handle_REQ()
 
+    def do_OPTIONS(self):
+        self.send_response(200)
+        self.send_header('Access-Control-Allow-Origin', '*')
+        self.send_header('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE')
+        self.send_header('Access-Control-Allow-Headers', 'Content-type, Authorization')
+        self.end_headers()
+        
     def handle_REQ(self):
         self.send_response(200)
         self.send_header('Content-type','text/plain')
+        self.send_header('Access-Control-Allow-Origin', '*')
         self.end_headers()
 
         try:
@@ -63,20 +71,33 @@ class httpHandler(BaseHTTPRequestHandler):
             method(self.request_body)
             return
 
+    def bound(self, value, min_value, max_value):
+        result = min(value, max_value)
+        result = max(value, min_value)
+        return result
+
     def handle_motionTargets_head(self, params):
-        left_right_radians = math.radians(params['left-right'])
-        up_down_radians = math.radians(params['up-down'])
+        left_right = self.head_bound_left_right(params['left-right'])
+        left_right_radians = math.radians(left_right)
+        up_down = self.head_bound_up_down(params['up-down'], left_right)
+        up_down_radians = math.radians(up_down)
         speed = params['speed'] if ('speed' in params) else 1.0
         motionProxy = ALProxy("ALMotion", NAO_IP, PROXY_PORT)
         motionProxy.setStiffnesses("Head", 1.0)
-        motionProxy.post.angleInterpolationWithSpeed(
+        motionProxy.angleInterpolationWithSpeed(
             ["HeadYaw", "HeadPitch"], [left_right_radians, up_down_radians], speed)
         self.wfile.write('Head moving to ' + 
             str([params['left-right'], params['up-down'], speed]))
 
+    def head_bound_left_right(self, left_right):
+        return self.bound(left_right, -119.5, 119.5)
+
+    def head_bound_up_down(self, up_down, left_right):
+        return self.bound(up_down, -38.5, 29.5)
+
     def handle_motionTargets_left_arm(self, params):
-        left_right_radians = math.radians(params['left-right'])
-        up_down_radians = math.radians(params['up-down'])
+        left_right_radians = math.radians(self.bound(params['left-right'], -18, 76))
+        up_down_radians = math.radians(self.bound(params['up-down'], -119.5, 119.5))
         speed = params['speed'] if ('speed' in params) else 1.0
         motionProxy = ALProxy("ALMotion", NAO_IP, PROXY_PORT)
         motionProxy.post.angleInterpolationWithSpeed(
@@ -85,8 +106,8 @@ class httpHandler(BaseHTTPRequestHandler):
             str([params['left-right'], params['up-down'], speed]))
 
     def handle_motionTargets_right_arm(self, params):
-        left_right_radians = math.radians(params['left-right'])
-        up_down_radians = math.radians(params['up-down'])
+        left_right_radians = math.radians(self.bound(params['left-right'], -76, 18))
+        up_down_radians = math.radians(self.bound(params['up-down'], -119.5, 119.5))
         speed = params['speed'] if ('speed' in params) else 1.0
         motionProxy = ALProxy("ALMotion", NAO_IP, PROXY_PORT)
         motionProxy.post.angleInterpolationWithSpeed(
@@ -117,7 +138,7 @@ class httpHandler(BaseHTTPRequestHandler):
 
     def handle_behaviors_talks(self, params):
         message = str(params['message'])
-        is_animated = params['animated'] if ('animated' in params) else false
+        is_animated = params['animated'] if ('animated' in params) else False
         if is_animated:
             speechProxy = ALProxy("ALAnimatedSpeech", NAO_IP, PROXY_PORT)
             description = 'Saying "' + message + '" animatedly'
