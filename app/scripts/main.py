@@ -45,6 +45,10 @@ class httpHandler(BaseHTTPRequestHandler):
         self.send_header('Access-Control-Allow-Origin', '*')
         self.end_headers()
 
+        # Useful when you're not getting any response:
+        # self.wfile.write('Hello world!')
+        # return
+        
         try:
             parsed_URL = urlparse.urlparse(self.path)
             path_parts = str(parsed_URL.path)[1:].split('/')
@@ -68,7 +72,11 @@ class httpHandler(BaseHTTPRequestHandler):
             return
         if self.command == 'PUT':
             method = getattr(self, 'handle_motionTargets_'+target_type.replace('-', '_'))
-            method(self.request_body)
+            params = self.request_body
+            async = params['async'] if ('async' in params) else True
+            proxy = ALProxy("ALMotion", NAO_IP, PROXY_PORT)
+            proxyMethod = proxy.post.angleInterpolationWithSpeed if async else proxy.angleInterpolationWithSpeed
+            method(params, proxy, proxyMethod, async)
             return
 
     def bound(self, value, min_value, max_value):
@@ -76,17 +84,17 @@ class httpHandler(BaseHTTPRequestHandler):
         result = max(result, min_value)
         return result
 
-    def handle_motionTargets_head(self, params):
+    def handle_motionTargets_head(self, params, proxy, proxyMethod, async):
         left_right = self.head_bound_left_right(params['left-right'])
         left_right_radians = math.radians(left_right)
         up_down = self.head_bound_up_down(params['up-down'], left_right)
         up_down_radians = math.radians(up_down)
         speed = params['speed'] if ('speed' in params) else 1.0
-        motionProxy = ALProxy("ALMotion", NAO_IP, PROXY_PORT)
-        motionProxy.setStiffnesses("Head", 1.0)
-        motionProxy.angleInterpolationWithSpeed(
-            ["HeadYaw", "HeadPitch"], [left_right_radians, up_down_radians], speed)
-        self.wfile.write('Head moving to ' + 
+        proxy.setStiffnesses("Head", 1.0)
+        proxyMethod( ["HeadYaw", "HeadPitch"], 
+            [left_right_radians, up_down_radians], speed)
+        verb = 'moving' if async else 'moved'
+        self.wfile.write('Head ' + verb + ' to ' + 
             str([left_right, up_down, speed]))
 
     def head_bound_left_right(self, left_right):
@@ -115,29 +123,49 @@ class httpHandler(BaseHTTPRequestHandler):
                 return self.bound(up_down, b[1], b[2])
         return self.bound(up_down, last_b[1], last_b[2])
 
-    def handle_motionTargets_left_arm(self, params):
+    def handle_motionTargets_left_shoulder(self, params, proxy, proxyMethod, async):
         left_right = self.bound(params['left-right'], -18, 76)
         left_right_radians = math.radians(left_right)
         up_down = self.bound(params['up-down'], -119.5, 119.5)
         up_down_radians = math.radians(up_down)
         speed = params['speed'] if ('speed' in params) else 1.0
-        motionProxy = ALProxy("ALMotion", NAO_IP, PROXY_PORT)
-        motionProxy.post.angleInterpolationWithSpeed(
-            ["LShoulderRoll", "LShoulderPitch"], [left_right_radians, up_down_radians], speed)
-        self.wfile.write('Left arm moving to ' + 
-            str([params['left-right'], params['up-down'], speed]))
+        proxyMethod(["LShoulderRoll", "LShoulderPitch"], 
+            [left_right_radians, up_down_radians], speed)
+        verb = 'moving' if async else 'moved'
+        self.wfile.write('Left shoulder ' + verb + ' to ' + 
+            str([left_right, up_down, speed]))
 
-    def handle_motionTargets_right_arm(self, params):
+    def handle_motionTargets_right_shoulder(self, params, proxy, proxyMethod, async):
         left_right = self.bound(params['left-right'], -76, 18)
         left_right_radians = math.radians(left_right)
         up_down = self.bound(params['up-down'], -119.5, 119.5)
         up_down_radians = math.radians(up_down)
         speed = params['speed'] if ('speed' in params) else 1.0
-        motionProxy = ALProxy("ALMotion", NAO_IP, PROXY_PORT)
-        motionProxy.post.angleInterpolationWithSpeed(
-            ["RShoulderRoll", "RShoulderPitch"], [left_right_radians, up_down_radians], speed)
-        self.wfile.write('Right arm moving to ' + 
-            str([params['left-right'], params['up-down'], speed]))
+        proxyMethod( ["RShoulderRoll", "RShoulderPitch"], 
+            [left_right_radians, up_down_radians], speed)
+        verb = 'moving' if async else 'moved'
+        self.wfile.write('Right shoulder ' + verb + ' to ' + 
+            str([left_right, up_down, speed]))
+
+    def handle_motionTargets_left_elbow(self, params, proxy, proxyMethod, async):
+        in_out = self.bound(-params['in-out'], 2, 88.5)
+        in_out_radians = math.radians(in_out)
+        speed = params['speed'] if ('speed' in params) else 1.0
+        proxyMethod(
+            ["LElbowRoll"], [in_out_radians], speed)
+        verb = 'moving' if async else 'moved'
+        self.wfile.write('Left elbow ' + verb + ' to ' + 
+            str([in_out, speed]))
+
+    def handle_motionTargets_right_elbow(self, params, proxy, proxyMethod, async):
+        in_out = self.bound(params['in-out'], 2, 88.5)
+        in_out_radians = math.radians(in_out)
+        speed = params['speed'] if ('speed' in params) else 1.0
+        proxyMethod(
+            ["RElbowRoll"], [in_out_radians], speed)
+        verb = 'moving' if async else 'moved'
+        self.wfile.write('Right elbow ' + verb + ' to ' + 
+            str([in_out, speed]))
 
     def handle_behaviors(self, behavior_type):
         if self.command == 'GET':

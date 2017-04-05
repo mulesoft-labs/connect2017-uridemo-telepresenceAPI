@@ -1,5 +1,6 @@
 #%RAML 1.0
-baseUri: https://mocksvc.mulesoft.com/mocks/80889755-2987-4829-b9e0-ac5143521fa2
+#baseUri: https://mocksvc.mulesoft.com/mocks/e0bcf131-b12c-472c-bcb9-4fb68c1fed3c
+baseUri: http://192.168.0.144:8080
 title: Robot Telepresence
 version: v1
 mediaType: application/json
@@ -11,12 +12,18 @@ uses:
   /head:
     type: 
       r.motionTarget: { target-type: t.head-motion-target }
-  /left-arm:
+  /left-shoulder:
     type: 
-      r.motionTarget: { target-type: t.left-arm-motion-target }
-  /right-arm:
+      r.motionTarget: { target-type: t.left-shoulder-motion-target }
+  /right-shoulder:
     type: 
-      r.motionTarget: { target-type: t.right-arm-motion-target }
+      r.motionTarget: { target-type: t.right-shoulder-motion-target }
+  /left-elbow:
+    type: 
+      r.motionTarget: { target-type: t.left-elbow-motion-target }
+  /right-elbow:
+    type: 
+      r.motionTarget: { target-type: t.right-elbow-motion-target }
 /behaviors:
   /walks:
     type: 

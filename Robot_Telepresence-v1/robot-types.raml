@@ -6,7 +6,18 @@ types:
     maximum: 1
     default: 0.99
     example: 0.5
+  motion-target:
+    properties:
+      speed:
+        type: motion-speed
+        required: false
+      async:
+        description: Whether the API call should return immediately, vs waiting for the motion to complete.
+        type: boolean
+        required: false
+        default: true
   head-motion-target:
+    type: motion-target
     properties:
       left-right:
         description: In degrees, with positive being left
@@ -20,14 +31,13 @@ types:
         maximum: 29.5
         minimum: -38.5
         example: -15
-      speed:
-        type: motion-speed
-        required: false
     example:
       left-right: 20
       up-down: -15
       speed: 0.5
-  left-arm-motion-target:
+      async: true
+  left-shoulder-motion-target:
+    type: motion-target
     properties:
       left-right:
         description: In degrees, with positive being left
@@ -41,14 +51,13 @@ types:
         maximum: 119.5
         minimum: -119.5
         example: -15
-      speed:
-        type: motion-speed
-        required: false
     example:
       left-right: 0
       up-down: 90
       speed: 0.5
-  right-arm-motion-target:
+      async: true
+  right-shoulder-motion-target:
+    type: motion-target
     properties:
       left-right:
         type: number
@@ -61,13 +70,40 @@ types:
         maximum: 119.5
         minimum: -119.5
         example: -15
-      speed:
-        type: motion-speed
-        required: false
     example:
       left-right: 0
       up-down: 90
       speed: 0.5
+      async: true
+  left-elbow-motion-target:
+    type: motion-target
+    properties:
+      in-out:
+        description: In degrees, with positive being in
+        type: number
+        maximum: 88.5
+        minimum: 2
+        example: 2
+    example:
+      in-out: 2
+      speed: 0.5
+      async: true
+  right-elbow-motion-target:
+    type: motion-target
+    properties:
+      in-out:
+        description: In degrees, with positive being in
+        type: number
+        maximum: 88.5
+        minimum: 2
+        example: 2
+      speed:
+        type: motion-speed
+        required: false
+    example:
+      in-out: 2
+      speed: 0.5
+      async: true
   walk:
     properties:
       distance-x:
