@@ -73,7 +73,7 @@ class httpHandler(BaseHTTPRequestHandler):
 
     def bound(self, value, min_value, max_value):
         result = min(value, max_value)
-        result = max(value, min_value)
+        result = max(result, min_value)
         return result
 
     def handle_motionTargets_head(self, params):
@@ -87,17 +87,39 @@ class httpHandler(BaseHTTPRequestHandler):
         motionProxy.angleInterpolationWithSpeed(
             ["HeadYaw", "HeadPitch"], [left_right_radians, up_down_radians], speed)
         self.wfile.write('Head moving to ' + 
-            str([params['left-right'], params['up-down'], speed]))
+            str([left_right, up_down, speed]))
 
     def head_bound_left_right(self, left_right):
         return self.bound(left_right, -119.5, 119.5)
 
     def head_bound_up_down(self, up_down, left_right):
-        return self.bound(up_down, -38.5, 29.5)
+        #return self.bound(up_down, -38.5, 29.5)
+        bounds = [
+            [-119.52, -25.73, 18.91],
+            [ -87.49, -18.91, 11.46],
+            [ -62.45, -24.64, 17.19],
+            [-51.74, -27.5,  18.91 ],
+            [-43.32, -31.4,  21.2  ],
+            [-27.85, -38.5,  24.18 ],
+            [  0,    -38.5,  29.51 ],
+            [ 27.85, -38.5,  24.18 ],
+            [ 43.32, -31.4,  21.2  ],
+            [ 51.74, -27.5,  18.91 ],
+            [ 62.45, -24.64, 17.19 ],
+            [ 87.49, -18.91, 11.46 ],
+            [119.52, -25.73, 18.91 ]
+            ]
+        for b in bounds:
+            last_b = b
+            if (left_right <= b[0]):
+                return self.bound(up_down, b[1], b[2])
+        return self.bound(up_down, last_b[1], last_b[2])
 
     def handle_motionTargets_left_arm(self, params):
-        left_right_radians = math.radians(self.bound(params['left-right'], -18, 76))
-        up_down_radians = math.radians(self.bound(params['up-down'], -119.5, 119.5))
+        left_right = self.bound(params['left-right'], -18, 76)
+        left_right_radians = math.radians(left_right)
+        up_down = self.bound(params['up-down'], -119.5, 119.5)
+        up_down_radians = math.radians(up_down)
         speed = params['speed'] if ('speed' in params) else 1.0
         motionProxy = ALProxy("ALMotion", NAO_IP, PROXY_PORT)
         motionProxy.post.angleInterpolationWithSpeed(
@@ -106,8 +128,10 @@ class httpHandler(BaseHTTPRequestHandler):
             str([params['left-right'], params['up-down'], speed]))
 
     def handle_motionTargets_right_arm(self, params):
-        left_right_radians = math.radians(self.bound(params['left-right'], -76, 18))
-        up_down_radians = math.radians(self.bound(params['up-down'], -119.5, 119.5))
+        left_right = self.bound(params['left-right'], -76, 18)
+        left_right_radians = math.radians(left_right)
+        up_down = self.bound(params['up-down'], -119.5, 119.5)
+        up_down_radians = math.radians(up_down)
         speed = params['speed'] if ('speed' in params) else 1.0
         motionProxy = ALProxy("ALMotion", NAO_IP, PROXY_PORT)
         motionProxy.post.angleInterpolationWithSpeed(
