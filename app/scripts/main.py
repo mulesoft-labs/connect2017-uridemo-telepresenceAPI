@@ -1,6 +1,7 @@
 #!/usr/bin/python
 from BaseHTTPServer import BaseHTTPRequestHandler,HTTPServer
 from naoqi import ALProxy
+#import ssl
 import urlparse
 import json
 import math
@@ -132,8 +133,8 @@ class httpHandler(BaseHTTPRequestHandler):
         proxyMethod(["LShoulderRoll", "LShoulderPitch"], 
             [left_right_radians, up_down_radians], speed)
         verb = 'moving' if async else 'moved'
-        self.wfile.write('Left shoulder ' + verb + ' to ' + 
-            str([left_right, up_down, speed]))
+        self.wfile.write('(Left shoulder ' + verb + ' to ' + 
+            str([left_right, up_down, speed]) + ')')
 
     def handle_motionTargets_right_shoulder(self, params, proxy, proxyMethod, async):
         left_right = self.bound(params['left-right'], -76, 18)
@@ -144,8 +145,8 @@ class httpHandler(BaseHTTPRequestHandler):
         proxyMethod( ["RShoulderRoll", "RShoulderPitch"], 
             [left_right_radians, up_down_radians], speed)
         verb = 'moving' if async else 'moved'
-        self.wfile.write('Right shoulder ' + verb + ' to ' + 
-            str([left_right, up_down, speed]))
+        self.wfile.write('(Right shoulder ' + verb + ' to ' + 
+            str([left_right, up_down, speed]) + ')')
 
     def handle_motionTargets_left_elbow(self, params, proxy, proxyMethod, async):
         in_out = self.bound(-params['in-out'], 2, 88.5)
@@ -154,8 +155,8 @@ class httpHandler(BaseHTTPRequestHandler):
         proxyMethod(
             ["LElbowRoll"], [in_out_radians], speed)
         verb = 'moving' if async else 'moved'
-        self.wfile.write('Left elbow ' + verb + ' to ' + 
-            str([in_out, speed]))
+        self.wfile.write('(Left elbow ' + verb + ' to ' + 
+            str([in_out, speed]) + ')')
 
     def handle_motionTargets_right_elbow(self, params, proxy, proxyMethod, async):
         in_out = self.bound(params['in-out'], 2, 88.5)
@@ -164,8 +165,8 @@ class httpHandler(BaseHTTPRequestHandler):
         proxyMethod(
             ["RElbowRoll"], [in_out_radians], speed)
         verb = 'moving' if async else 'moved'
-        self.wfile.write('Right elbow ' + verb + ' to ' + 
-            str([in_out, speed]))
+        self.wfile.write('(Right elbow ' + verb + ' to ' + 
+            str([in_out, speed]) + ')')
 
     def handle_behaviors(self, behavior_type):
         if self.command == 'GET':
@@ -185,37 +186,59 @@ class httpHandler(BaseHTTPRequestHandler):
         angle_radians = math.radians(params['angle']) if ('angle' in params) else 0
         motionProxy = ALProxy("ALMotion", NAO_IP, PROXY_PORT)
         motionProxy.moveInit()
-        motionProxy.post.moveTo(distance_x, distance_y, angle_radians)
-        self.wfile.write('Walking to ' + str([distance_x, distance_y, params['angle']]))
+        async = params['async'] if ('async' in params) else True
+        proxyMethod = proxy.post.moveTo if async else proxy.moveTo
+        proxyMethod(distance_x, distance_y, angle_radians)
+        verb = 'Walking' if async else 'Walked'
+        self.wfile.write('(' + verb + ' to ' + str([distance_x, distance_y, params['angle']]) + ')')
 
     def handle_behaviors_talks(self, params):
         message = str(params['message'])
         is_animated = params['animated'] if ('animated' in params) else False
+        async = params['async'] if ('async' in params) else True
         if is_animated:
             speechProxy = ALProxy("ALAnimatedSpeech", NAO_IP, PROXY_PORT)
-            description = 'Saying "' + message + '" animatedly'
         else:
             speechProxy = ALProxy("ALTextToSpeech", NAO_IP, PROXY_PORT)
-            description = 'Saying "' + message + '"'
-        speechProxy.post.say(message)
+        proxyMethod = speechProxy.post.say if async else speechProxy.say
+        proxyMethod(message)
+        verb = 'Saying ' if async else 'Said '
+        suffix = ' animatedly' if is_animated else ''
+        description = '(' + verb + ' "' + message + '"' + suffix + ')'
         self.wfile.write(description)
 
     def handle_behaviors_postures(self, params):
         posture = str(params['posture'])
         speed = params['speed'] if ('speed' in params) else 1.0
-        postureProxy = ALProxy("ALRobotPosture", NAO_IP, PROXY_PORT)
-        postureProxy.post.goToPosture(posture, speed)
-        self.wfile.write('Assuming posture ' + posture + ' at speed ' + str(speed))
+        if (posture == 'CrouchStraightArms'):
+            proxy = ALProxy("ALMotion", NAO_IP, PROXY_PORT)
+            proxyMethodAsync = proxy.post.angleInterpolationWithSpeed 
+            proxyMethodSync = proxy.angleInterpolationWithSpeed
+            async = False
+            self.handle_behaviors_postures({'posture': 'Crouch', 'async': False})
+            self.handle_motionTargets_right_shoulder({'left-right': -30, 'up-down': 90, 'speed': speed, 'async': True  }, proxy, proxyMethodAsync, True)
+            self.handle_motionTargets_left_shoulder({ 'left-right':  30, 'up-down': 90, 'speed': speed, 'async': False }, proxy, proxyMethodSync, False)
+            self.handle_motionTargets_right_elbow({'in-out': 0, 'speed': speed, 'async': True }, proxy, proxyMethodAsync, True)
+            self.handle_motionTargets_left_elbow({ 'in-out': 0, 'speed': speed, 'async': False }, proxy, proxyMethodSync, False)
+            self.handle_motionTargets_right_shoulder({'left-right': 0, 'up-down': 90, 'speed': speed, 'async': True  }, proxy, proxyMethodAsync, True)
+            self.handle_motionTargets_left_shoulder({ 'left-right': 0, 'up-down': 90, 'speed': speed, 'async': False }, proxy, proxyMethodSync, False)
+        else:
+            async = params['async'] if ('async' in params) else True
+            postureProxy = ALProxy("ALRobotPosture", NAO_IP, PROXY_PORT)
+            proxyMethod = postureProxy.post.goToPosture if async else postureProxy.goToPosture
+            proxyMethod(posture, speed)
+        verb = 'Assuming ' if async else 'Assumed '
+        self.wfile.write('(' + verb + 'posture ' + posture + ' at speed ' + str(speed) + ')')
 
     def handle_behaviors_awakes(self, params):
         is_awake = params['awake']
         motionProxy = ALProxy("ALMotion", NAO_IP, PROXY_PORT)
         if is_awake:
             motionProxy.wakeUp()
-            self.wfile.write('Waking up')
+            self.wfile.write('(Waking up)')
         else:
             motionProxy.rest()
-            self.wfile.write('Resting')
+            self.wfile.write('(Resting)')
 
     def handle_behaviors_kicks(self, params):
         postureProxy = ALProxy("ALRobotPosture", NAO_IP, PROXY_PORT)
@@ -284,6 +307,8 @@ class httpHandler(BaseHTTPRequestHandler):
 try:
     #Create a web server and define the handler to manage the incoming request
     server = HTTPServer(('', API_PORT), httpHandler)
+    #Can't serve https: "Server aborted the SSL handshake"
+    #server.socket = ssl.wrap_socket (server.socket, certfile='./server.pem', server_side=True)
     print 'Started httpserver on port ' , API_PORT
     
     #Wait forever for incoming http requests

@@ -8,6 +8,7 @@
     <Resources>
         <File name="icon" src="icon.png" />
         <File name="main" src="scripts/main.py" />
+        <File name="cert" src="scripts/server.pem" />
         <File name="__init__" src="scripts/stk/__init__.py" />
         <File name="events" src="scripts/stk/events.py" />
         <File name="logging" src="scripts/stk/logging.py" />
@@ -20,5 +21,6 @@
         <Path src=".metadata" />
         <Path src="scripts/main_no_NAO.py" />
         <Path src="scripts/main_orig.py" />
+        <Path src="scripts/server.pem" />
     </IgnoredPaths>
 </Package>

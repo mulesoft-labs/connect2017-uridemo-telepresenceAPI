@@ -6,16 +6,19 @@ types:
     maximum: 1
     default: 0.99
     example: 0.5
-  motion-target:
+  with-async:
     properties:
-      speed:
-        type: motion-speed
-        required: false
       async:
         description: Whether the API call should return immediately, vs waiting for the motion to complete.
         type: boolean
         required: false
         default: true
+  motion-target:
+    type: with-async
+    properties:
+      speed:
+        type: motion-speed
+        required: false
   head-motion-target:
     type: motion-target
     properties:
@@ -105,6 +108,7 @@ types:
       speed: 0.5
       async: true
   walk:
+    type: with-async
     properties:
       distance-x:
         description: distance forward, in meters
@@ -128,7 +132,9 @@ types:
       distance-x: 0.2
       distance-y: 0
       angle: 0
+      async: true
   talk:
+    type: with-async
     properties:
       message:
         example: Hello, I am a NAO robot!
@@ -139,6 +145,8 @@ types:
         default: false
     example: 
       message: Hello, I am a NAO robot!
+      animated: false
+      async: true
   kick:
     properties:
       leg:
@@ -147,9 +155,10 @@ types:
     example:
       leg: left
   posture:
+    type: with-async
     properties:
       posture:
-        enum: [ Stand, StandInit, StandZero, Crouch, Sit, SitRelax, LyingBelly, LyingBack ]
+        enum: [ Stand, StandInit, StandZero, Crouch, CrouchStraightArms, Sit, SitRelax, LyingBelly, LyingBack ]
         example: Stand
       speed: 
         type: motion-speed
@@ -157,6 +166,7 @@ types:
     example:
       posture: Stand
       speed: 1.0
+      async: true
   awake:
     properties:
       awake:
