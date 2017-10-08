@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<package version="0.0.1" uuid="telepresence-api">
+<package version="0.0.2" uuid="telepresence-api">
  <names>
   <name lang="en_US">telepresence-api</name>
  </names>

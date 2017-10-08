@@ -1,7 +1,7 @@
 #!/usr/bin/python
 from BaseHTTPServer import BaseHTTPRequestHandler,HTTPServer
 from naoqi import ALProxy
-#import ssl
+#import ssl:
 import urlparse
 import json
 import math
@@ -149,24 +149,42 @@ class httpHandler(BaseHTTPRequestHandler):
             str([left_right, up_down, speed]) + ')')
 
     def handle_motionTargets_left_elbow(self, params, proxy, proxyMethod, async):
-        in_out = self.bound(-params['in-out'], 2, 88.5)
+        in_out = self.bound(params['in-out'], 2, 88.5)
         in_out_radians = math.radians(in_out)
         speed = params['speed'] if ('speed' in params) else 1.0
-        proxyMethod(
-            ["LElbowRoll"], [in_out_radians], speed)
-        verb = 'moving' if async else 'moved'
-        self.wfile.write('(Left elbow ' + verb + ' to ' + 
-            str([in_out, speed]) + ')')
+        if ('yaw' in params):
+            yaw = self.bound(params['yaw'], -119.5, 119.5)
+            yaw_radians = math.radians(yaw)
+            proxyMethod(
+                ["LElbowRoll", "LElbowYaw"], [-in_out_radians, yaw_radians], speed)
+            verb = 'moving' if async else 'moved'
+            self.wfile.write('(Left elbow ' + verb + ' to ' + 
+                str([in_out, yaw, speed]) + ')')
+        else:
+            proxyMethod(
+                ["LElbowRoll"], [-in_out_radians], speed)
+            verb = 'moving' if async else 'moved'
+            self.wfile.write('(Left elbow ' + verb + ' to ' + 
+                str([in_out, speed]) + ')')
 
     def handle_motionTargets_right_elbow(self, params, proxy, proxyMethod, async):
         in_out = self.bound(params['in-out'], 2, 88.5)
         in_out_radians = math.radians(in_out)
         speed = params['speed'] if ('speed' in params) else 1.0
-        proxyMethod(
-            ["RElbowRoll"], [in_out_radians], speed)
-        verb = 'moving' if async else 'moved'
-        self.wfile.write('(Right elbow ' + verb + ' to ' + 
-            str([in_out, speed]) + ')')
+        if ('yaw' in params):
+            yaw = self.bound(params['yaw'], -119.5, 119.5)
+            yaw_radians = math.radians(yaw)
+            proxyMethod(
+                ["RElbowRoll", "RElbowYaw"], [in_out_radians, yaw_radians], speed)
+            verb = 'moving' if async else 'moved'
+            self.wfile.write('(Right elbow ' + verb + ' to ' + 
+                str([in_out, yaw, speed]) + ')')
+        else:
+            proxyMethod(
+                ["RElbowRoll"], [in_out_radians], speed)
+            verb = 'moving' if async else 'moved'
+            self.wfile.write('(Right elbow ' + verb + ' to ' + 
+                str([in_out, speed]) + ')')
 
     def handle_behaviors(self, behavior_type):
         if self.command == 'GET':
