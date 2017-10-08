@@ -1,9 +1,22 @@
 #%RAML 1.0
 #baseUri: https://mocksvc.mulesoft.com/mocks/e0bcf131-b12c-472c-bcb9-4fb68c1fed3c
-baseUri: http://192.168.0.144:8080
+#baseUri: http://192.168.0.144:8080
+baseUri: http://192.168.86.116:8080
+#baseUri: http://172.16.11.105:8080
 title: Robot Telepresence
 version: v1
 mediaType: application/json
+
+documentation: 
+  - title: Instructions for operating via the API console
+    content: |
+    
+      Check the "API is behind a firewall", then try to send.
+      
+      Watch for the safety alert in the address bar, and accept loading unsafe scripts. 
+      
+      After the page reloads, again check the "API is behind a firewall".
+
 uses: 
   r: robot-resources.raml
   t: robot-types.raml
