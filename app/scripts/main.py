@@ -205,7 +205,7 @@ class httpHandler(BaseHTTPRequestHandler):
         motionProxy = ALProxy("ALMotion", NAO_IP, PROXY_PORT)
         motionProxy.moveInit()
         async = params['async'] if ('async' in params) else True
-        proxyMethod = proxy.post.moveTo if async else proxy.moveTo
+        proxyMethod = motionProxy.post.moveTo if async else motionProxy.moveTo
         proxyMethod(distance_x, distance_y, angle_radians)
         verb = 'Walking' if async else 'Walked'
         self.wfile.write('(' + verb + ' to ' + str([distance_x, distance_y, params['angle']]) + ')')
